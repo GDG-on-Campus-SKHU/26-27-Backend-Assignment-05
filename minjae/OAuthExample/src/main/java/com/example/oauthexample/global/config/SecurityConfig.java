@@ -70,8 +70,8 @@ public class SecurityConfig {
                         // 구글 로그인 실습: 서비스 JWT가 발급되기 전에 들어오는 요청
                         .requestMatchers(HttpMethod.GET,
                                 "/api/oauth2/login/google", "/api/oauth2/callback/google").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/posts").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ACCESS_ADMIN")
+                        .requestMatchers("/users/**", "/projects/**")
+                        .hasAuthority("ACCESS_USER")
                         .anyRequest().authenticated())
 
                 // 5. 우리가 만든 JWT 필터를 Spring Security 필터 체인에 끼워 넣기

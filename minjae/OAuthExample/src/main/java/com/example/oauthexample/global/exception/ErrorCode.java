@@ -33,7 +33,8 @@ public enum ErrorCode {
     GOOGLE_API_UNAVAILABLE("AUTH_009", HttpStatus.BAD_GATEWAY, "구글 로그인 서버에서 정상 응답을 받지 못했습니다."),
 
     // Project
-    PROJECT_NOT_FOUND("PROJECT_001", HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다.");
+    PROJECT_NOT_FOUND("PROJECT_001", HttpStatus.NOT_FOUND, "프로젝트를 찾을 수 없습니다."),
+    PROJECT_FORBIDDEN("PROJECT_002", HttpStatus.FORBIDDEN, "본인의 프로젝트만 접근할 수 있습니다.");
 
     private final String code;
     private final HttpStatus status;

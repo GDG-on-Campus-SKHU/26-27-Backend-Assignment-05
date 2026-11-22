@@ -21,10 +21,5 @@ public class DefaultRoleInitializer implements ApplicationRunner {
         Role user = new Role("USER");
         user.addPermission(Permission.ACCESS_USER);
         roleRepository.save(user);
-
-        Role admin = new Role("ADMIN");
-        admin.addPermission(Permission.ACCESS_USER);
-        admin.addPermission(Permission.ACCESS_ADMIN);
-        roleRepository.save(admin);
     }
 }

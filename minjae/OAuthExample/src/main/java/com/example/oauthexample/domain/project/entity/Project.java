@@ -14,7 +14,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.util.Objects;
 
 @Entity
 @Table(name = "projects")
@@ -34,9 +33,8 @@ public class Project {
 
     @Builder
     public Project(String projectTitle, User user) {
-        this.user = Objects.requireNonNull(user, "프로젝트 소유자는 필수입니다.");
+        this.user = user;
         this.projectTitle = projectTitle;
-        // 연관관계의 주인과 반대쪽 컬렉션을 함께 설정합니다.
         user.getProjects().add(this);
     }
 
