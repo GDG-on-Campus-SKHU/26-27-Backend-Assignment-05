@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/signup", "/auth/login", "/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/posts").permitAll()
                         // 구글 로그인 실습: 서비스 JWT가 발급되기 전에 들어오는 요청
                         .requestMatchers(HttpMethod.GET,
                                 "/api/oauth2/login/google", "/api/oauth2/callback/google").permitAll()

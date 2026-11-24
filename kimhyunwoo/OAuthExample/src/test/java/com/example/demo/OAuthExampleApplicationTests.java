@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -67,13 +69,24 @@ class OAuthExampleApplicationTests {
     private PostRepository postRepository;
 
     @Test
-    void googleCallbackAcceptsCodeFromDirectBrowserAuthorization() throws Exception {
+    void googleCallbackRequiresStateIssuedByLoginStart() throws Exception {
         MockMvc mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
 
-        mvc.perform(get("/api/oauth2/callback/google"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTH_007"));
-        mvc.perform(get("/api/oauth2/callback/google").param("error", "access_denied"))
+        mvc.perform(get("/api/oauth2/callback/google").param("code", "practice-code"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON_002"));
+
+        MockHttpSession session = new MockHttpSession();
+        startGoogleLogin(mvc, session);
+        mvc.perform(get("/api/oauth2/callback/google").session(session)
+                        .param("code", "practice-code").param("state", "forged-state"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON_002"));
+        verify(authService, never()).authenticateWithGoogle(anyString());
+
+        String cancelState = startGoogleLogin(mvc, session);
+        mvc.perform(get("/api/oauth2/callback/google").session(session)
+                        .param("error", "access_denied").param("state", cancelState))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("AUTH_007"));
         verify(authService, never()).authenticateWithGoogle(anyString());
@@ -85,12 +98,18 @@ class OAuthExampleApplicationTests {
             ReflectionTestUtils.setField(user, "id", 1L);
             return user;
         });
-        MvcResult callback = mvc.perform(get("/api/oauth2/callback/google").param("code", "practice-code"))
+        String state = startGoogleLogin(mvc, session);
+        MvcResult callback = mvc.perform(get("/api/oauth2/callback/google").session(session)
+                        .param("code", "practice-code").param("state", state))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"))
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
                 .andReturn();
+
+        mvc.perform(get("/api/oauth2/callback/google").session(session)
+                        .param("code", "practice-code").param("state", state))
+                .andExpect(status().isBadRequest());
 
         ArgumentCaptor<User> savedUser = ArgumentCaptor.forClass(User.class);
         verify(userRepository).saveAndFlush(savedUser.capture());
@@ -101,7 +120,14 @@ class OAuthExampleApplicationTests {
         mvc.perform(get("/users/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("learner@example.com"));
+    }
 
+    private String startGoogleLogin(MockMvc mvc, MockHttpSession session) throws Exception {
+        MvcResult start = mvc.perform(get("/api/oauth2/login/google").session(session))
+                .andExpect(status().isFound())
+                .andReturn();
+        return UriComponentsBuilder.fromUriString(start.getResponse().getRedirectedUrl())
+                .build().getQueryParams().getFirst("state");
     }
 
     @Test

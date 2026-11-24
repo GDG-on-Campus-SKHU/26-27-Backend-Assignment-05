@@ -81,11 +81,9 @@ public class AuthController {
                 .header("Referrer-Policy", "no-referrer").body(tokens);
     }
 
-    // /api/oauth2/login/google로 시작해 state가 함께 돌아온 경우에만 세션 값과 비교합니다.
-    // 강의 자료의 인가 URL을 직접 연 경우(state 없음)는 로컬 실습용으로 허용합니다.
     private void validateState(String state, HttpServletRequest request) {
-        if (state == null) {
-            return;
+        if (!StringUtils.hasText(state)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE);
         }
         HttpSession session = request.getSession(false);
         if (session == null

@@ -5,6 +5,7 @@ import com.example.demo.domain.game.dto.GameSaveRequestDto;
 import com.example.demo.domain.game.entity.Game;
 import com.example.demo.domain.game.repository.GameRepository;
 import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.exception.ForbiddenException;
 import com.example.demo.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,11 @@ public class GameService {
     private final GameRepository gameRepository;
 
     @Transactional
-    public GameInfoResponseDto saveGame(GameSaveRequestDto gameSaveRequestDto) {
+    public GameInfoResponseDto saveGame(Long userId, GameSaveRequestDto gameSaveRequestDto) {
         Game game = Game.builder()
                 .gameName(gameSaveRequestDto.gameName())
                 .genre(gameSaveRequestDto.genre())
+                .writerId(userId)
                 .build();
 
         gameRepository.save(game);
@@ -31,9 +33,14 @@ public class GameService {
     }
 
     @Transactional
-    public void deleteGame(Long gameId) {
+    public void deleteGame(Long gameId, Long userId) {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.GAME_NOT_FOUND));
+
+        if (!game.getWriterId().equals(userId)) {
+            throw new ForbiddenException(ErrorCode.GAME_FORBIDDEN);
+        }
+
         gameRepository.delete(game);
     }
 

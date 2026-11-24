@@ -33,6 +33,7 @@ public enum ErrorCode {
 
     // Game
     GAME_NOT_FOUND("GAME_001", HttpStatus.NOT_FOUND, "요청하신 게임 정보를 찾을 수 없습니다."),
+    GAME_FORBIDDEN("GAME_002", HttpStatus.FORBIDDEN, "본인이 등록한 게임만 삭제할 수 있습니다."),
     // Post
     POST_NOT_FOUND("POST_001", HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     POST_FORBIDDEN("POST_002", HttpStatus.FORBIDDEN, "본인이 작성한 게시글만 삭제할 수 있습니다.");

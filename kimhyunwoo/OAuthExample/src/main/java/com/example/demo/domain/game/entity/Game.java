@@ -24,12 +24,16 @@ public class Game {
 
     private String genre;
 
+    @Column(nullable = false)
+    private Long writerId;
+
     @OneToMany(mappedBy = "game", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Player> players = new ArrayList<>();
 
     @Builder
-    public Game(String gameName, String genre) {
+    public Game(String gameName, String genre, Long writerId) {
         this.gameName = gameName;
         this.genre = genre;
+        this.writerId = writerId;
     }
 }
