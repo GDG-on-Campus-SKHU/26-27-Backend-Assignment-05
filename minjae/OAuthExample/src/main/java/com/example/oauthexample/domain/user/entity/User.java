@@ -59,10 +59,8 @@ public class User {
         this.password = password;
     }
 
-    public static User withGoogleAccount(String email, String googleId, String passwordHash) {
-        User user = new User(email, passwordHash);
-        user.googleId = googleId;
-        return user;
+    public void linkGoogleAccount(String googleId) {
+        this.googleId = googleId;
     }
 
     public void addRole(Role role) {

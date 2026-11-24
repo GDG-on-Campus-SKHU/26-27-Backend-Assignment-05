@@ -230,19 +230,32 @@ public class AuthService {
     }
 
     private User createGoogleUser(String googleId, String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new ConflictException(ErrorCode.DUPLICATE_EMAIL);
+        // 기존 계정이 있는지 확인
+        User user = userRepository.findByEmail(email)
+                // 기존 계정이 없다면 생성 후 유저 반환
+                .orElseGet(() -> {
+                    Role userRole = roleRepository.findByName("USER")
+                            .orElseThrow(() ->
+                                    new IllegalStateException("기본 USER 역할이 없습니다."));
+
+                    String passwordHash =
+                            passwordEncoder.encode(UUID.randomUUID().toString());
+
+                    User newUser = new User(email, passwordHash);
+                    newUser.addRole(userRole);
+                    return newUser;
+                });
+
+        String existingGoogleId = user.getGoogleId();
+
+        // 다른 Google 계정이 이미 연결되어 있으면 거부
+        if (existingGoogleId != null && !existingGoogleId.equals(googleId)) {
+            throw new UnauthorizedException(ErrorCode.GOOGLE_LOGIN_FAILED);
         }
 
-        Role userRole = roleRepository.findByName("USER")
-                .orElseThrow(() ->
-                        new IllegalStateException("기본 USER 역할이 없습니다."));
+        user.linkGoogleAccount(googleId);
 
-        // 기존 password의 NOT NULL 제약을 유지할 내부 값입니다.
-        String passwordHash = passwordEncoder.encode(UUID.randomUUID().toString());
         try {
-            User user = User.withGoogleAccount(email, googleId, passwordHash);
-            user.addRole(userRole);
             return userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException e) {
             throw new ConflictException(ErrorCode.DUPLICATE_EMAIL, e);
