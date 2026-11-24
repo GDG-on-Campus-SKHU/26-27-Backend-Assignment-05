@@ -18,8 +18,10 @@ public class DefaultRoleInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        Role user = new Role("USER");
-        user.addPermission(Permission.ACCESS_USER);
-        roleRepository.save(user);
+        if (roleRepository.findByName("USER").isEmpty()) {
+            Role user = new Role("USER");
+            user.addPermission(Permission.ACCESS_USER);
+            roleRepository.save(user);
+        }
     }
 }
