@@ -3,10 +3,12 @@ package com.gdg.oauthexample.domain.movie.controller;
 import com.gdg.oauthexample.domain.movie.dto.MovieInfoResponseDto;
 import com.gdg.oauthexample.domain.movie.dto.MovieSaveRequestDto;
 import com.gdg.oauthexample.domain.movie.service.MovieService;
+import com.gdg.oauthexample.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,22 +26,26 @@ import java.util.List;
 public class MovieController {
 
     private final MovieService movieService;
+    private final UserRepository userRepository;
 
-    @PostMapping("/{userId}") // 경로 파라미터(userId)로 전달받은 유저에 영화 정보 생성
-    public ResponseEntity<MovieInfoResponseDto> saveMovie(@Valid @PathVariable Long userId,
+    @PostMapping
+    public ResponseEntity<MovieInfoResponseDto> saveMovie(@Valid @AuthenticationPrincipal Long userId,
                                                           @Valid @RequestBody MovieSaveRequestDto movieSaveRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieService.saveMovie(userId, movieSaveRequestDto));
     }
 
     @PatchMapping("/{movieId}")
-    public ResponseEntity<MovieInfoResponseDto> updateMovie(@Valid @PathVariable Long movieId,
-                                                            @RequestBody MovieSaveRequestDto movieSaveRequestDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(movieService.updateMovie(movieId, movieSaveRequestDto));
+    public ResponseEntity<MovieInfoResponseDto> updateMovie(@Valid @AuthenticationPrincipal Long userId,
+                                                            @Valid @PathVariable Long movieId,
+                                                            @Valid @RequestBody MovieSaveRequestDto movieSaveRequestDto) {
+
+        return ResponseEntity.status(HttpStatus.OK).body(movieService.updateMovie(userId, movieId, movieSaveRequestDto));
     }
 
     @DeleteMapping("/{movieId}")
-    public ResponseEntity<Void> deleteMovie(@PathVariable Long movieId) {
-        movieService.deleteMovie(movieId);
+    public ResponseEntity<Void> deleteMovie(@Valid @AuthenticationPrincipal Long userId,
+                                            @Valid @PathVariable Long movieId) {
+        movieService.deleteMovie(userId, movieId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
