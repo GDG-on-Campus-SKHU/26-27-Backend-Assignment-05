@@ -57,7 +57,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/oauth2/login/google", "/api/oauth2/callback/google").permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/orders").authenticated()
                         .anyRequest().authenticated())
 
                 // 5. 우리가 만든 JWT 필터를 Spring Security 필터 체인에 끼워 넣기

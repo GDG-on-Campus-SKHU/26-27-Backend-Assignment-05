@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Builder
 public record OrderInfoResponseDto(
         Long id,
-        String customerPhoneNumber,
         Integer waitingNumber,
         OrderType orderType,
         String menuName,
@@ -30,7 +29,6 @@ public record OrderInfoResponseDto(
     public static OrderInfoResponseDto from(Order order) {
         return OrderInfoResponseDto.builder()
                 .id(order.getId())
-                .customerPhoneNumber(order.getCustomer() != null ? order.getCustomer().getPhoneNumber() : null)
                 .waitingNumber(order.getWaitingNumber())
                 .orderType(order.getOrderType())
                 .menuName(order.getMenuName())
