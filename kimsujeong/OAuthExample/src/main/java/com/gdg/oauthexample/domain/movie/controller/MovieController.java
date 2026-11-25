@@ -2,6 +2,7 @@ package com.gdg.oauthexample.domain.movie.controller;
 
 import com.gdg.oauthexample.domain.movie.dto.MovieInfoResponseDto;
 import com.gdg.oauthexample.domain.movie.dto.MovieSaveRequestDto;
+import com.gdg.oauthexample.domain.movie.dto.MovieUpdateRequestDto;
 import com.gdg.oauthexample.domain.movie.service.MovieService;
 import com.gdg.oauthexample.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -37,9 +38,9 @@ public class MovieController {
     @PatchMapping("/{movieId}")
     public ResponseEntity<MovieInfoResponseDto> updateMovie(@Valid @AuthenticationPrincipal Long userId,
                                                             @Valid @PathVariable Long movieId,
-                                                            @Valid @RequestBody MovieSaveRequestDto movieSaveRequestDto) {
+                                                            @Valid @RequestBody MovieUpdateRequestDto movieUpdateRequestDto) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(movieService.updateMovie(userId, movieId, movieSaveRequestDto));
+        return ResponseEntity.status(HttpStatus.OK).body(movieService.updateMovie(userId, movieId, movieUpdateRequestDto));
     }
 
     @DeleteMapping("/{movieId}")

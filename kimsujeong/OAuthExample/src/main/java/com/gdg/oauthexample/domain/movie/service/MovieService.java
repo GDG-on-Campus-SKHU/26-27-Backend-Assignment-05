@@ -2,6 +2,7 @@ package com.gdg.oauthexample.domain.movie.service;
 
 import com.gdg.oauthexample.domain.movie.dto.MovieInfoResponseDto;
 import com.gdg.oauthexample.domain.movie.dto.MovieSaveRequestDto;
+import com.gdg.oauthexample.domain.movie.dto.MovieUpdateRequestDto;
 import com.gdg.oauthexample.domain.movie.entity.Movie;
 import com.gdg.oauthexample.domain.movie.repository.MovieRepository;
 import com.gdg.oauthexample.domain.user.entity.User;
@@ -43,7 +44,7 @@ public class MovieService {
 
     // updateMovie
     @Transactional
-    public MovieInfoResponseDto updateMovie(Long userId, Long movieId, MovieSaveRequestDto movieSaveRequestDto) {
+    public MovieInfoResponseDto updateMovie(Long userId, Long movieId, MovieUpdateRequestDto movieUpdateRequestDto) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new IllegalArgumentException(("요청하신 영화 정보를 찾을 수 없습니다.")));
 
@@ -52,7 +53,7 @@ public class MovieService {
             throw new ForbiddenException(ErrorCode.MOVIE_PATCH_FORBIDDEN);
         }
 
-        movie.update(movieSaveRequestDto.title(), movieSaveRequestDto.director(), movieSaveRequestDto.releaseDate());
+        movie.update(movieUpdateRequestDto.title(), movieUpdateRequestDto.director(), movieUpdateRequestDto.releaseDate());
 
         return MovieInfoResponseDto.from(movie);
     }
