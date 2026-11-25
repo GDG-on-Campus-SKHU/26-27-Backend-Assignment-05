@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: ${DB_DDL_AUTO:create}
+    show-sql: true
+    open-in-view: false
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${ACCESS_EXP}
+  refresh-token-expiration: ${REFRESH_EXP}
+
+# 구글 로그인 실습: Cloud 콘솔에서 만든 웹 클라이언트와 콜백 주소
+google:
+  oauth:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/oauth2/callback/google}
