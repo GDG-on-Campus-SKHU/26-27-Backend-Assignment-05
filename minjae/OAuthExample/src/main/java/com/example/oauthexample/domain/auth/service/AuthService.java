@@ -154,8 +154,8 @@ public class AuthService {
         }
 
         // 2. DB에 저장된 최신 Refresh Token과 같은지 확인
-        RefreshToken savedToken = refreshTokenRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new UnauthorizedException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+        RefreshToken savedToken = refreshTokenRepository.findBySessionIdForUpdate(sessionId)
+                        .orElseThrow(() -> new UnauthorizedException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (!savedToken.getToken().equals(refreshToken)) {
             throw new UnauthorizedException(ErrorCode.REFRESH_TOKEN_REUSED);
