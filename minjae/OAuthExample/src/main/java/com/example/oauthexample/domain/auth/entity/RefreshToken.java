@@ -18,15 +18,19 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private Long userId;    // 사용자 한 명당 Refresh Token 하나만 저장
+    @Column(nullable = false)
+    private Long userId;
 
     @Column(nullable = false, length = 500)
     private String token;
 
-    public RefreshToken(Long userId, String token) {
+    @Column(nullable = false)
+    private String sessionId;
+
+    public RefreshToken(Long userId, String token, String sessionId) {
         this.userId = userId;
         this.token = token;
+        this.sessionId = sessionId;
     }
 
     // 재발급할 때마다 새 토큰으로 덮어씀 (Rotation)

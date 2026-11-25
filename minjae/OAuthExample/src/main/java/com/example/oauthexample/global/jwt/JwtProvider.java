@@ -33,20 +33,21 @@ public class JwtProvider {
     }
 
     public String createAccessToken(Long userId, Set<Permission> permissions) {
-        return createToken(userId, permissions, ACCESS, accessTokenExpiration);
+        return createToken(userId, permissions, null, ACCESS, accessTokenExpiration);
     }
 
-    public String createRefreshToken(Long userId) {
-        return createToken(userId, null, REFRESH, refreshTokenExpiration);
+    public String createRefreshToken(Long userId, String sessionId) {
+        return createToken(userId, null, sessionId, REFRESH, refreshTokenExpiration);
     }
 
-    private String createToken(Long userId, Set<Permission> permissions, String type, long expiration) {
+    private String createToken(Long userId, Set<Permission> permissions, String sessionId, String type, long expiration) {
         Date now = new Date();
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))                  // sub: 누구의 토큰인지
                 .claim("type", type)                           // access인지 refresh인지
                 .claim("permissions", permissions)
+                .claim("sessionId", sessionId)
                 .id(UUID.randomUUID().toString())                 // 같은 순간에 만들어도 토큰이 겹치지 않게
                 .issuedAt(now)                                    // iat: 발급 시각
                 .expiration(new Date(now.getTime() + expiration)) // exp: 만료 시각

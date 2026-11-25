@@ -129,8 +129,11 @@ public class AuthService {
 
         EnumSet<Permission> permissions = collectPermissions(user);
 
+        String sessionId = UUID.randomUUID().toString();
+
+
         // 3. 토큰 발급
-        return issueTokens(user.getId(), permissions);
+        return issueTokens(user.getId(), permissions, sessionId);
     }
 
     @Transactional
@@ -140,16 +143,18 @@ public class AuthService {
         // 1. Refresh Token 자체가 올바른지 확인 (서명, 만료, 종류)
         Claims claims;
         Long userId;
+        String sessionId;
         try {
             claims = jwtProvider.getClaimsFromRefreshToken(refreshToken);
             userId = Long.valueOf(claims.getSubject());
+            sessionId = claims.get("sessionId", String.class);
 
         } catch (JwtException | IllegalArgumentException e) {
             throw new UnauthorizedException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         // 2. DB에 저장된 최신 Refresh Token과 같은지 확인
-        RefreshToken savedToken = refreshTokenRepository.findByUserId(userId)
+        RefreshToken savedToken = refreshTokenRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new UnauthorizedException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (!savedToken.getToken().equals(refreshToken)) {
@@ -164,16 +169,16 @@ public class AuthService {
         EnumSet<Permission> permissions = collectPermissions(user);
 
         // 3. 새 토큰 발급 (이전 Refresh Token은 덮어써져서 더 이상 못 씀)
-        return issueTokens(userId, permissions);
+        return issueTokens(userId, permissions, sessionId);
     }
 
-    private TokenResponse issueTokens(Long userId, Set<Permission> permissions) {
+    private TokenResponse issueTokens(Long userId, Set<Permission> permissions, String sessionId) {
         String accessToken = jwtProvider.createAccessToken(userId, permissions);
-        String refreshToken = jwtProvider.createRefreshToken(userId);
+        String refreshToken = jwtProvider.createRefreshToken(userId, sessionId);
 
         // 처음 로그인이면 새로 저장하고, 이미 있으면 새 토큰으로 덮어씁니다.
-        RefreshToken savedToken = refreshTokenRepository.findByUserId(userId)
-                .orElse(new RefreshToken(userId, refreshToken));
+        RefreshToken savedToken = refreshTokenRepository.findBySessionId(sessionId)
+                .orElse(new RefreshToken(userId, refreshToken, sessionId));
 
         savedToken.updateToken(refreshToken);
         refreshTokenRepository.save(savedToken);
@@ -226,7 +231,8 @@ public class AuthService {
                 .orElseGet(() -> createGoogleUser(googleId, email));
 
         EnumSet<Permission> permissions = collectPermissions(user);
-        return issueTokens(user.getId(), permissions);
+        String sessionId = UUID.randomUUID().toString();
+        return issueTokens(user.getId(), permissions, sessionId);
     }
 
     private User createGoogleUser(String googleId, String email) {
