@@ -1,5 +1,6 @@
 package com.example.oauthexample.global.config;
 
+import com.example.oauthexample.domain.user.service.UserService;
 import com.example.oauthexample.global.exception.ErrorCode;
 import com.example.oauthexample.global.exception.ErrorResponse;
 import com.example.oauthexample.global.jwt.JwtAuthenticationFilter;
@@ -25,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final UserService userService;
     private final ObjectMapper objectMapper;
 
     @Bean
@@ -75,7 +77,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 // 5. 우리가 만든 JWT 필터를 Spring Security 필터 체인에 끼워 넣기
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, userService),
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -6,7 +6,6 @@ import com.example.oauthexample.domain.auth.dto.SignupRequest;
 import com.example.oauthexample.domain.auth.dto.TokenResponse;
 import com.example.oauthexample.domain.auth.entity.RefreshToken;
 import com.example.oauthexample.domain.auth.repository.RefreshTokenRepository;
-import com.example.oauthexample.domain.role.entity.Permission;
 import com.example.oauthexample.domain.role.entity.Role;
 import com.example.oauthexample.domain.role.repository.RoleRepository;
 import com.example.oauthexample.domain.user.entity.User;
@@ -40,11 +39,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -127,13 +123,10 @@ public class AuthService {
             throw new UnauthorizedException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        EnumSet<Permission> permissions = collectPermissions(user);
-
         String sessionId = UUID.randomUUID().toString();
 
-
         // 3. 토큰 발급
-        return issueTokens(user.getId(), permissions, sessionId);
+        return issueTokens(user.getId(), sessionId);
     }
 
     @Transactional
@@ -166,14 +159,12 @@ public class AuthService {
                 .orElseThrow(() ->
                         new UnauthorizedException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-        EnumSet<Permission> permissions = collectPermissions(user);
-
         // 3. 새 토큰 발급 (이전 Refresh Token은 덮어써져서 더 이상 못 씀)
-        return issueTokens(userId, permissions, sessionId);
+        return issueTokens(userId, sessionId);
     }
 
-    private TokenResponse issueTokens(Long userId, Set<Permission> permissions, String sessionId) {
-        String accessToken = jwtProvider.createAccessToken(userId, permissions);
+    private TokenResponse issueTokens(Long userId, String sessionId) {
+        String accessToken = jwtProvider.createAccessToken(userId);
         String refreshToken = jwtProvider.createRefreshToken(userId, sessionId);
 
         // 처음 로그인이면 새로 저장하고, 이미 있으면 새 토큰으로 덮어씁니다.
@@ -184,14 +175,6 @@ public class AuthService {
         refreshTokenRepository.save(savedToken);
 
         return TokenResponse.of(accessToken, refreshToken);
-    }
-
-    private EnumSet<Permission> collectPermissions(User user) {
-        return  user.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .collect(Collectors.toCollection(
-                        () -> EnumSet.noneOf(Permission.class)
-                ));
     }
 
     public URI googleAuthorizationUrl(String state) {
@@ -230,9 +213,8 @@ public class AuthService {
         User user = userRepository.findByGoogleId(googleId)
                 .orElseGet(() -> createGoogleUser(googleId, email));
 
-        EnumSet<Permission> permissions = collectPermissions(user);
         String sessionId = UUID.randomUUID().toString();
-        return issueTokens(user.getId(), permissions, sessionId);
+        return issueTokens(user.getId(), sessionId);
     }
 
     private User createGoogleUser(String googleId, String email) {

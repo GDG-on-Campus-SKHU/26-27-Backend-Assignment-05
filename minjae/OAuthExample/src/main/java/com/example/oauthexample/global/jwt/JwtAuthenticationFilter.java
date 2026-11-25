@@ -1,5 +1,6 @@
 package com.example.oauthexample.global.jwt;
 
+import com.example.oauthexample.domain.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -7,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final UserService userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,19 +38,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 Long userId = Long.valueOf(claims.getSubject());
 
-                List<?> permissions = claims.get("permissions", List.class);
-
-                List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-                if (permissions != null) {
-                    for (Object value : permissions) {
-                        if (!(value instanceof String permission)) {
-                            throw new JwtException("권한 정보가 올바르지 않습니다.");
-                        }
-
-                        authorities.add(new SimpleGrantedAuthority(permission));
-                    }
-                }
+                // 토큰 발급 당시의 권한 대신 DB의 현재 권한을 사용합니다.
+                List<SimpleGrantedAuthority> authorities =
+                        userService.getCurrentPermissions(userId).stream()
+                                .map(permission -> new SimpleGrantedAuthority(permission.name()))
+                                .toList();
 
                 Authentication authentication =
                         UsernamePasswordAuthenticationToken.authenticated(
