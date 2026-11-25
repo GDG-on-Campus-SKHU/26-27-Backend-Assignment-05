@@ -27,8 +27,8 @@ public class Project {
     @Column(nullable = false)
     private String projectTitle;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Builder
