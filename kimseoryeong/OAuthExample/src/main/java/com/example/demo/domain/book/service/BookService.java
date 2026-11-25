@@ -5,6 +5,8 @@ import com.example.demo.domain.book.dto.BookInfoResponseDto;
 import com.example.demo.domain.book.dto.BookSaveRequestDto;
 import com.example.demo.domain.book.dto.BookUpdateRequestDto;
 import com.example.demo.domain.book.repository.BookRepository;
+import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +36,7 @@ public class BookService {
     @Transactional(readOnly = true)
     public BookInfoResponseDto getBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("조회하려는 책을 찾을 수 없습니다. id: " + bookId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.BOOK_NOT_FOUND));
 
         return BookInfoResponseDto.from(book);
     }
@@ -42,7 +44,7 @@ public class BookService {
     @Transactional
     public BookInfoResponseDto updateBook(Long bookId, BookUpdateRequestDto bookUpdateRequestDto) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("수정하려는 책을 찾을 수 없습니다. id: " + bookId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.BOOK_NOT_FOUND));
 
         book.update(bookUpdateRequestDto.title(),
                 bookUpdateRequestDto.price());
@@ -53,7 +55,7 @@ public class BookService {
     @Transactional
     public void deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new IllegalArgumentException("삭제하려는 책을 찾을 수 없습니다. id: " + bookId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.BOOK_NOT_FOUND));
 
         bookRepository.delete(book);
     }
