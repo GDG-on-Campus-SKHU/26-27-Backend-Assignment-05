@@ -2,6 +2,8 @@ package com.example.demo.domain.user.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,7 +35,12 @@ public class User {
     public User(String email, String password) {
         this.email = email;
         this.password = password;
+        this.role = Role.USER;
     }
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
     public static User withGoogleAccount(String email, String googleId, String passwordHash) {
         User user = new User(email, passwordHash);

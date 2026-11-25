@@ -2,6 +2,7 @@ package com.example.demo.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -28,8 +29,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
         ErrorCode errorCode = e.getErrorCode();
-        log.warn("[CustomException] code: {}, message: {}", errorCode.getCode(), errorCode.getMessage());
-        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.from(errorCode));
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ErrorResponse.of(errorCode, e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -88,6 +89,13 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = ErrorCode.UNSUPPORTED_MEDIA_TYPE;
         log.warn("[HttpMediaTypeNotSupportedException] message: {}", e.getMessage());
         return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.from(errorCode));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation() {
+        ErrorCode errorCode = ErrorCode.DATA_INTEGRITY_CONFLICT;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ErrorResponse.from(errorCode));
     }
 
     @ExceptionHandler(Exception.class)

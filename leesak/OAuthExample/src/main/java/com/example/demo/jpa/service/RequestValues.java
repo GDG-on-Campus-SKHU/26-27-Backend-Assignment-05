@@ -1,7 +1,7 @@
 package com.example.demo.jpa.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import com.example.demo.global.exception.CustomException;
+import com.example.demo.global.exception.ErrorCode;
 
 final class RequestValues {
     private RequestValues() {
@@ -9,11 +9,13 @@ final class RequestValues {
 
     static String text(String value, String field, int maxLength) {
         if (value == null || value.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + "은(는) 필수입니다.");
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,
+                    field + "은(는) 필수입니다.");
         }
+
         String trimmed = value.trim();
         if (trimmed.length() > maxLength) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,
                     field + "은(는) " + maxLength + "자 이하여야 합니다.");
         }
         return trimmed;
@@ -21,7 +23,8 @@ final class RequestValues {
 
     static Long genreId(Long value) {
         if (value == null || value <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "genreId는 양의 정수여야 합니다.");
+            throw new CustomException(ErrorCode.INVALID_INPUT_VALUE,
+                    "genreId는 양의 정수여야 합니다.");
         }
         return value;
     }

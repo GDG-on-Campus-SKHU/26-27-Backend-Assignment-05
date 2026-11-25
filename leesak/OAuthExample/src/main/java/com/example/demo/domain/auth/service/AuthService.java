@@ -107,7 +107,7 @@ public class AuthService {
         }
 
         // 3. 토큰 발급
-        return issueTokens(user.getId());
+        return issueTokens(user);
     }
 
     @Transactional
@@ -131,7 +131,9 @@ public class AuthService {
         }
 
         // 3. 새 토큰 발급 (이전 Refresh Token은 덮어써져서 더 이상 못 씀)
-        return issueTokens(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnauthorizedException(ErrorCode.INVALID_REFRESH_TOKEN));
+        return issueTokens(user);
     }
 
     public URI googleAuthorizationUrl(String state) {
@@ -169,7 +171,7 @@ public class AuthService {
     public TokenResponse loginWithGoogle(String googleId, String email) {
         User user = userRepository.findByGoogleId(googleId)
                 .orElseGet(() -> createGoogleUser(googleId, email));
-        return issueTokens(user.getId());
+        return issueTokens(user);
     }
 
     private User createGoogleUser(String googleId, String email) {
@@ -233,8 +235,9 @@ public class AuthService {
         return RestClient.builder().requestFactory(factory);
     }
 
-    private TokenResponse issueTokens(Long userId) {
-        String accessToken = jwtProvider.createAccessToken(userId);
+    private TokenResponse issueTokens(User user) {
+        Long  userId = user.getId();
+        String accessToken = jwtProvider.createAccessToken(userId, user.getRole());
         String refreshToken = jwtProvider.createRefreshToken(userId);
 
         // 처음 로그인이면 새로 저장하고, 이미 있으면 새 토큰으로 덮어씁니다.

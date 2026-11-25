@@ -6,10 +6,10 @@ import com.example.demo.jpa.dto.BookRequest;
 import com.example.demo.jpa.dto.BookResponse;
 import com.example.demo.jpa.repository.BookRepository;
 import com.example.demo.jpa.repository.GenreRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.exception.NotFoundException;
 
 import java.util.List;
 
@@ -62,11 +62,11 @@ public class BookService {
 
     private Book getBook(Long id) {
         return books.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "도서를 찾을 수 없습니다: " + id));
+                new NotFoundException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     private Genre getGenre(Long id) {
         return genres.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "장르를 찾을 수 없습니다: " + id));
+                new NotFoundException(ErrorCode.GENRE_NOT_FOUND));
     }
 }

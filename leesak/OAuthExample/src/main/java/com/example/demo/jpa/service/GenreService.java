@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.demo.global.exception.ConflictException;
+import com.example.demo.global.exception.ErrorCode;
+import com.example.demo.global.exception.NotFoundException;
 
 import java.util.List;
 
@@ -50,14 +53,13 @@ public class GenreService {
     public void delete(Long id) {
         Genre genre = getGenre(id);
         if (books.existsByGenreId(id)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "도서가 등록된 장르는 삭제할 수 없습니다. 도서를 삭제하거나 다른 장르로 옮겨주세요.");
+            throw new ConflictException(ErrorCode.GENRE_IN_USE);
         }
         genres.delete(genre);
     }
 
     private Genre getGenre(Long id) {
         return genres.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "장르를 찾을 수 없습니다: " + id));
+                new NotFoundException(ErrorCode.GENRE_NOT_FOUND));
     }
 }
